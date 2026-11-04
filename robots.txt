@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /backend/
+Sitemap: https://ybcsoft.com/sitemap.xml

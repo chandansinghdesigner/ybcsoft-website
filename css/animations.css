@@ -1,0 +1,7 @@
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes rise{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+.hero-t>*{animation:rise .8s both}.hero-t h2{animation-delay:.12s}.hero-t p{animation-delay:.24s}.hero-t .btns{animation-delay:.36s}.code{animation:rise 1s .3s both}
+.js .reveal{opacity:0;transform:translateY(24px);transition:opacity .6s,transform .6s}.js .reveal.in{opacity:1;transform:none}
+.pcard.hide{display:none}.pcard.pop{animation:rise .5s both}
+@media (prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.js .reveal{opacity:1;transform:none}}

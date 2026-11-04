@@ -1,36 +1,119 @@
-/* YBCSOFT contact.js: validation + submit to backend/send-email.php */
 (function () {
-  const form = document.getElementById('cform'), btn = document.getElementById('sbtn'),
-        msg = document.getElementById('fmsg'), thanks = document.getElementById('thanks');
-  let sending = false;
-  const pre = new URLSearchParams(location.search).get('service');
-  if (pre) form.service.value = pre;
-  const rules = {
-    name: v => v.trim().length >= 2 || 'Enter your full name.',
-    email: v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) || 'Enter a valid email address.',
-    message: v => v.trim().length >= 10 || 'Describe your project in at least 10 characters.'
-  };
-  const check = k => { const f = form[k], r = rules[k](f.value), ok = r === true;
-    f.classList.toggle('bad', !ok); f.parentElement.querySelector('.err').textContent = ok ? '' : r; return ok; };
-  Object.keys(rules).forEach(k => form[k].addEventListener('blur', () => check(k)));
-  form.addEventListener('submit', async e => {
-    e.preventDefault(); if (sending) return;
-    msg.textContent = ''; msg.className = '';
-    if (!Object.keys(rules).map(check).every(Boolean)) return;
-    sending = true; btn.disabled = true; btn.querySelector('.bt').textContent = 'Sending...'; btn.querySelector('.spin').hidden = false;
+  const form = document.getElementById("cform");
+  if (!form) return;
+
+  const ACCESS_KEY = "dfa987e3-7a21-475f-9a6d-f624651666e4";
+  const btn = document.getElementById("sbtn");
+  const btnText = btn.querySelector(".bt");
+  const spin = btn.querySelector(".spin");
+  const msg = document.getElementById("fmsg");
+  const thanks = document.getElementById("thanks");
+
+  const field = (n) => form.querySelector('[name="' + n + '"]');
+
+  // preselect service from ?service=... (used by the "Get a Quote" buttons on services.html)
+  try {
+    const q = new URLSearchParams(location.search).get("service");
+    const sel = form.querySelector('[name="service"]');
+    if (q && sel) [...sel.options].forEach(o => { if (o.textContent.trim() === q.trim()) sel.value = o.value || o.textContent; });
+  } catch (e) {}
+
+  function setError(input, text) {
+    const err = input.parentElement.querySelector(".err");
+    if (err) err.textContent = text || "";
+    input.setAttribute("aria-invalid", text ? "true" : "false");
+  }
+
+  function validate() {
+    let ok = true;
+    const name = field("name");
+    const email = field("email");
+    const message = field("message");
+
+    if (!name.value.trim()) {
+      setError(name, "Please enter your name.");
+      ok = false;
+    } else setError(name, "");
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
+      setError(email, "Please enter a valid email address.");
+      ok = false;
+    } else setError(email, "");
+
+    if (message.value.trim().length < 10) {
+      setError(message, "Please share a few details (at least 10 characters).");
+      ok = false;
+    } else setError(message, "");
+
+    return ok;
+  }
+
+  function setLoading(on) {
+    btn.disabled = on;
+    spin.hidden = !on;
+    btnText.textContent = on ? "Sending..." : "Send Your Inquiry";
+  }
+
+  function showMsg(text, type) {
+    msg.textContent = text;
+    msg.style.color = type === "error" ? "#d62828" : "#1a7f37";
+  }
+
+  // clear error as user types
+  form.querySelectorAll("input, textarea").forEach((el) => {
+    el.addEventListener("input", () => setError(el, ""));
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    showMsg("", "");
+
+    if (!validate()) return;
+
+    // honeypot: bots fill this, humans don't
+    if (field("website").value) {
+      form.hidden = true;
+      thanks.hidden = false;
+      return;
+    }
+
+    const data = new FormData(form);
+    data.delete("website");
+    data.append("access_key", ACCESS_KEY);
+    data.append(
+      "subject",
+      "New Project Inquiry from " + field("name").value.trim(),
+    );
+    data.append("from_name", "YBCSOFT Website");
+
+    setLoading(true);
+
     try {
-      const res = await fetch('/api/send-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(form))) });
-      const raw = await res.text(); let data;
-      try { data = JSON.parse(raw); } catch (_) { throw new Error(res.status === 404 ? 'email service not found (/api/send-email)' : 'email service returned an invalid response'); }
-      if (!res.ok || !data.success) throw new Error(data.message || 'Request failed');
-      form.hidden = true; thanks.hidden = false; thanks.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { Accept: "application/json" },
+        body: data,
+      });
+      const json = await res.json();
+
+      if (json.success) {
+        form.reset();
+        form.hidden = true;
+        thanks.hidden = false;
+        thanks.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else {
+        showMsg(
+          json.message || "Could not send your inquiry. Please try again.",
+          "error",
+        );
+      }
     } catch (err) {
-      msg.className = 'error';
-      msg.textContent = 'We could not send your inquiry (' + err.message + '). ';
-      const a = document.createElement('a'); a.textContent = 'Send by email instead';
-      a.href = 'mailto:ybcsoft7677@gmail.com?subject=' + encodeURIComponent('Project inquiry from ' + form.name.value) + '&body=' + encodeURIComponent(form.message.value);
-      a.style.textDecoration = 'underline'; msg.appendChild(a);
-      sending = false; btn.disabled = false; btn.querySelector('.bt').textContent = 'Send Your Inquiry'; btn.querySelector('.spin').hidden = true;
+      showMsg(
+        "Network error. Please try again or email ybcsoft7677@gmail.com.",
+        "error",
+      );
+    } finally {
+      setLoading(false);
     }
   });
 })();

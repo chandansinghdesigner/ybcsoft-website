@@ -14,3 +14,9 @@
 
 ## Vercel deployment (Node.js email)
 The contact form posts to `/api/send-email` (api/send-email.js, Nodemailer). In Vercel > Project > Settings > Environment Variables add `SMTP_USER` (your Gmail), `SMTP_PASS` (Gmail App Password) and optionally `MAIL_TO`, then redeploy. The PHP backend is only for PHP hosting.
+
+## Contact form (current setup)
+The form on contact.html sends through Web3Forms (key in js/contact.js), so no SMTP or server setup is needed. Inquiries arrive at ybcsoft7677@gmail.com. The old /api and /backend mailers are no longer used and can be deleted.
+
+## Live site
+https://ybcsoft.vercel.app/  |  Facebook: https://www.facebook.com/ybcsoft/

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 Disallow: /backend/
-Sitemap: https://ybcsoft.com/sitemap.xml
+Sitemap: https://ybcsoft.vercel.app/sitemap.xml

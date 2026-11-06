@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --char: #303030;
+  --deep: #242424;
+  --ink: #1b1b1b;
+  --y: #fff000;
+  --r: #ed3038;
+  --paper: #f7f7f7;
+  --header-h: 72px;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--header-h) + 8px);
+    -webkit-text-size-adjust: 100%;
+    background: var(--deep);
+  }
+  body {
+    @apply font-sans text-[#555] antialiased;
+    background: var(--deep);
+    overflow-x: clip;
+    line-height: 1.65;
+  }
+  h1, h2, h3, h4 { @apply text-char; line-height: 1.12; letter-spacing: -0.02em; }
+  :focus-visible { outline: 3px solid var(--r); outline-offset: 3px; border-radius: 4px; }
+  .on-dark :focus-visible, .on-dark:focus-visible { outline-color: var(--y); }
+  ::selection { background: var(--y); color: var(--char); }
+  section[id] { scroll-margin-top: calc(var(--header-h) - 1px); }
+}
+
+@layer components {
+  .container-x { @apply mx-auto w-full max-w-[1200px] px-5 sm:px-8; }
+
+  .btn {
+    @apply relative inline-flex min-h-[48px] items-center justify-center gap-2 rounded-lg border-2 border-transparent px-6 py-3 text-[0.95rem] font-bold;
+    transition: transform .25s cubic-bezier(.2,.8,.2,1), background-color .2s, color .2s, border-color .2s, box-shadow .25s;
+    will-change: transform;
+  }
+  .btn:hover { transform: translateY(-3px); }
+  .btn:active { transform: translateY(0) scale(.98); }
+  .btn-yellow { background: var(--y); color: var(--char); box-shadow: 0 10px 30px -10px rgba(255,240,0,.55); }
+  .btn-yellow:hover { background: #e6d800; box-shadow: 0 16px 36px -10px rgba(255,240,0,.6); }
+  .btn-red { background: var(--r); color: #fff; box-shadow: 0 10px 30px -10px rgba(237,48,56,.6); }
+  .btn-red:hover { background: #c9222a; }
+  .btn-ghost { border-color: rgba(255,255,255,.7); color: #fff; }
+  .btn-ghost:hover { background: #fff; color: var(--char); }
+  .btn-dark { background: var(--char); color: #fff; }
+  .btn-dark:hover { background: var(--r); }
+
+  /* Angled slab edge: each section slides over the previous one so the page feels like one continuous machine */
+  .slab { clip-path: polygon(0 var(--slab, 56px), 100% 0, 100% 100%, 0 100%); margin-top: calc(var(--slab, 56px) * -1); padding-top: calc(var(--slab, 56px) + 5rem); }
+  @media (max-width: 767px) { .slab { --slab: 28px; } }
+
+  .glass { background: linear-gradient(145deg, rgba(255,255,255,.09), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.12); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+
+  .rule-brand::after { content: ""; display: block; width: 64px; height: 4px; margin-top: 1rem; border-radius: 2px; background: linear-gradient(90deg, var(--y) 50%, var(--r) 50%); }
+  .rule-brand-center::after { margin-left: auto; margin-right: auto; }
+
+  .sr-only-focusable:not(:focus) { @apply sr-only; }
+
+  /* 3D tilt surface (driven by components/Tilt.tsx via CSS vars) */
+  .tilt { transform-style: preserve-3d; transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0); transition: transform .35s cubic-bezier(.2,.8,.2,1); will-change: transform; }
+  .tilt.is-active { transition: transform .08s linear; }
+  .tilt-glare { position: absolute; inset: 0; pointer-events: none; border-radius: inherit; opacity: 0; transition: opacity .3s; background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.22), transparent 55%); }
+  .tilt.is-active .tilt-glare { opacity: 1; }
+  .pop-z { transform: translateZ(40px); }
+
+  /* Text mask reveal for section headings */
+  .mask-line { display: block; overflow: hidden; padding-bottom: .12em; margin-bottom: -.12em; }
+}
+
+/* Marquee, floating and CSS-3D orbit visuals */
+@keyframes orbit-spin { to { transform: rotateY(360deg); } }
+@keyframes orbit-ring { to { transform: rotate(360deg); } }
+@keyframes pulse-ring { 0% { transform: scale(.8); opacity: .7; } 100% { transform: scale(1.6); opacity: 0; } }
+@keyframes scan { 0%,100% { transform: translateY(0); opacity: .0 } 10% { opacity: 1 } 50% { transform: translateY(160px); opacity: 1 } 90% { opacity: 0 } }
+@keyframes typing { 0% { transform: scaleX(0); } 45%,100% { transform: scaleX(1); } }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes playhead { 0% { transform: translateX(0); } 100% { transform: translateX(110px); } }
+@keyframes cursor-move { 0%,100% { transform: translate(0,0); } 40% { transform: translate(26px,18px); } 70% { transform: translate(8px,34px); } }
+@keyframes gear { to { transform: rotate(360deg); } }
+@keyframes shimmer { to { background-position: 200% 0; } }
+@keyframes scroll-cue { 0% { transform: scaleY(0); transform-origin: top; } 50% { transform: scaleY(1); transform-origin: top; } 51% { transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; } }
+
+.svg-anim * { transform-box: fill-box; }
+
+/* Honour the user's OS-level motion setting everywhere */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+  .tilt { transform: none !important; }
+}

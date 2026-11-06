@@ -1,22 +1,32 @@
-# YBCSOFT website: setup and deployment
+# YBCSOFT – Premium 3D Website (Next.js)
 
-1. Upload the whole YBCSOFT folder to PHP hosting (PHP 8.0+), e.g. cPanel `public_html`.
-2. In the site root run `composer require phpmailer/phpmailer` (creates `vendor/`). No SSH? Run it on your computer and upload `vendor/`.
-3. Copy `backend/config.example.php` to `backend/config.php` and fill in SMTP details. For Gmail, enable 2-step verification and create an App Password. Alternatively set the same keys as server environment variables. Never put credentials in JS.
-4. Turn on HTTPS and test the form on contact.html.
-5. Local test: `php -S localhost:8000` in the project folder.
-6. Replace the demo portfolio, testimonials and stats with real content. Add a Google Maps embed on contact.html once you have a public address.
+Redesign of https://ybcsoft.vercel.app/ — same brand (charcoal `#303030`, yellow `#FFF000`, red `#ED3038`, Plus Jakarta Sans, logo),
+same contact details and the same working Web3Forms contact integration.
 
-## Form not sending? Checklist
-- Open `/backend/send-email.php` in the browser. You should see `{"success":false,"message":"Method not allowed"}`. If you see code or a download, PHP is not running (Live Server and static hosts like GitHub Pages or Netlify do not run PHP).
-- The error text under the form now names the problem: missing `config.php`, missing `vendor/` (PHPMailer) or SMTP login failure.
-- Set `'DEBUG' => true` in `config.php` temporarily to see the SMTP error. Gmail needs an App Password, not your normal password.
+## Stack
+Next.js 14 (App Router) · TypeScript · Tailwind CSS · Three.js + React Three Fiber (+ drei `Text3D`) · GSAP + ScrollTrigger · Framer Motion · Lucide.
 
-## Vercel deployment (Node.js email)
-The contact form posts to `/api/send-email` (api/send-email.js, Nodemailer). In Vercel > Project > Settings > Environment Variables add `SMTP_USER` (your Gmail), `SMTP_PASS` (Gmail App Password) and optionally `MAIL_TO`, then redeploy. The PHP backend is only for PHP hosting.
+## Run
+```bash
+npm install
+npm run dev        # http://localhost:3000
+npm run build && npm start
+```
+Deploy to Vercel: import the repo (framework auto-detected). No environment variables are required.
+Optional: `NEXT_PUBLIC_WEB3FORMS_KEY` overrides the Web3Forms key in `lib/data.ts`.
 
-## Contact form (current setup)
-The form on contact.html sends through Web3Forms (key in js/contact.js), so no SMTP or server setup is needed. Inquiries arrive at ybcsoft7677@gmail.com. The old /api and /backend mailers are no longer used and can be deleted.
+## How the 3D hero works
+- `components/HeroScene.tsx` – real extruded 3D words (`Text3D`, bundled `public/fonts/helvetiker_bold.typeface.json`) placed along the Z axis; camera flies through them; floating geometry, tunnel rings, particles; mouse parallax.
+- `components/HeroSection.tsx` – pins the stage (CSS sticky inside a ~700svh container) and uses **GSAP ScrollTrigger** (`scrub`) to drive progress; overlay headline, caption, jump-rail, dissolve into the next section.
+- `lib/heroTimeline.ts` – the single scroll → camera mapping shared by 3D and HTML.
+- Performance: Three.js is code-split (`dynamic`, `ssr:false`), rendering pauses when the hero is off-screen/tab hidden, DPR capped, fewer objects on mobile.
+- Accessibility: `prefers-reduced-motion` or no WebGL → static hero (same content, no pinning); sr-only list of the five services; keyboard-focusable rail; skip link; visible focus rings.
 
-## Live site
-https://ybcsoft.vercel.app/  |  Facebook: https://www.facebook.com/ybcsoft/
+## Where to edit things
+All copy, services, tech stack, portfolio items, contact details: **`lib/data.ts`**.
+Portfolio items are clearly labelled *Concept project*. Replace with real case studies (add images under `public/assets/images/`).
+
+## Notes vs. the old site
+- Old URLs (`/about.html`, `/services.html`, …) 301-redirect to the matching section (see `next.config.js`).
+- The unused `api/send-email.js` (Nodemailer) and `backend/` (PHP) mailers were dropped: the live form already used Web3Forms, as your old README states.
+- Tech tiles use compact monograms to stay light; swap in official SVG logos in `components/Technologies.tsx` if desired.
